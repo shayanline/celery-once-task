@@ -8,8 +8,8 @@ When the same task is called multiple times with the same arguments, `celery-onc
 
 The library provides two independent locks:
 
-- **Queue lock** — acquired when `apply_async()` / `delay()` is called. If a lock already exists for that task + arguments combination, the call is silently dropped (returns `None`). Released when the worker picks up the task.
-- **Running lock** — acquired when the worker starts executing the task. If another worker is already running the same task with the same arguments, the new execution is rejected. Released when the task finishes (success, failure, or revocation).
+- **Queue lock**: acquired when `apply_async()` / `delay()` is called. If a lock already exists for that task + arguments combination, the call is silently dropped (returns `None`). Released when the worker picks up the task.
+- **Running lock**: acquired when the worker starts executing the task. If another worker is already running the same task with the same arguments, the new execution is rejected. Released when the task finishes (success, failure, or revocation).
 
 Both locks use Redis keys with a TTL, so they expire automatically if something goes wrong.
 
@@ -36,7 +36,7 @@ pip install celery-once-task[django]
 
 ## Quick Start
 
-> **Using Django?** Skip to [Django Integration](#django-integration) — it handles configuration and signals for you automatically.
+> **Using Django?** Skip to [Django Integration](#django-integration), it handles configuration and signals for you automatically.
 
 ### 1. Configure
 
@@ -91,11 +91,11 @@ from celery import shared_task
 from celery_once_task import OnceTask
 
 @shared_task(base=OnceTask)
-def sync_data(account_id):
+def my_task(taskArg1, taskArg2):
     ...
 ```
 
-That's it. Calling `sync_data.delay(42)` multiple times will only queue one instance. If a worker is already running `sync_data(42)`, a second worker won't start another one.
+That's it. Calling `my_task.delay(42)` multiple times will only queue one instance. If a worker is already running `my_task(42)`, a second worker won't start another one.
 
 ## Django Integration
 
@@ -147,7 +147,7 @@ from celery import shared_task
 from celery_once_task import OnceTask
 
 @shared_task(base=OnceTask)
-def sync_data(account_id):
+def my_task(taskArg1, taskArg2):
     ...
 ```
 
@@ -191,30 +191,31 @@ def allow_queue_duplicates():
 @shared_task(base=OnceTask, running_lock=False)
 def allow_parallel_runs():
     ...
+```
 
 ## API
 
-### `celery_once_task.configure(**kwargs)`
+#### `celery_once_task.configure(**kwargs)`
 
 Set the global configuration. Call this once at startup before any tasks run.
 
-### `celery_once_task.setup_once_task_signals()`
+#### `celery_once_task.setup_once_task_signals()`
 
 Connect Celery signals for lock cleanup on task revocation and internal errors.
 
-### `celery_once_task.teardown_once_task_signals()`
+#### `celery_once_task.teardown_once_task_signals()`
 
 Disconnect the signals. Useful in tests.
 
-### `celery_once_task.OnceTask`
+#### `celery_once_task.OnceTask`
 
 Celery `Task` subclass. Use as `base=OnceTask` in your task decorators.
 
-### `celery_once_task.OnceTaskLocked`
+#### `celery_once_task.OnceTaskLocked`
 
 Exception raised (subclass of `celery.exceptions.Reject`) when a task is rejected because a running lock already exists.
 
-### `celery_once_task.OnceTaskUnlockBootStep`
+#### `celery_once_task.OnceTaskUnlockBootStep`
 
 Celery worker boot step that releases running locks on shutdown.
 
@@ -226,9 +227,9 @@ Lock keys follow this pattern:
 once_task:{task_name}:{hash}:{lock_type}
 ```
 
-- `task_name` — the full dotted task name (e.g., `myapp.tasks.sync_data`)
-- `hash` — first 16 characters of a SHA-256 hash of the serialized arguments
-- `lock_type` — either `queue` or `running`
+- `task_name`: the full dotted task name (e.g., `myapp.tasks.my_task`)
+- `hash`: first 16 characters of a SHA-256 hash of the serialized arguments
+- `lock_type`: either `queue` or `running`
 
 Two calls with different arguments get different lock keys and run independently.
 
