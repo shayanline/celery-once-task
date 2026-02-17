@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "celery-once-task"
+version = "0.1.0"
+description = "Prevent duplicate Celery task execution using Redis locks."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [
+    { name = "Shayan Khaksar" },
+]
+keywords = ["celery", "redis", "task", "lock", "deduplication", "once"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: Celery",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "celery>=5.0",
+    "redis>=4.0",
+]
+
+[project.optional-dependencies]
+django = ["django>=3.2"]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/elay-io/celery-once-task"
+Repository = "https://github.com/elay-io/celery-once-task"
+Issues = "https://github.com/elay-io/celery-once-task/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/celery_once_task"]
+
+[tool.ruff]
+target-version = "py39"
+
+[tool.ruff.lint]
+extend-select = ["I", "N"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
